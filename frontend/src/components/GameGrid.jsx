@@ -1,6 +1,6 @@
 import React from 'react';
 
-const GameGrid = ({ gridState, onCellClick, selectedPiece, canPlacePiece }) => {
+const GameGrid = ({ gridState, onCellClick, onPieceClick, selectedPiece, canPlacePiece }) => {
   // Get preview of where piece would be placed
   const getPreviewCells = (row, col) => {
     if (!selectedPiece) return [];
@@ -24,6 +24,16 @@ const GameGrid = ({ gridState, onCellClick, selectedPiece, canPlacePiece }) => {
   const previewCells = hoveredCell ? getPreviewCells(hoveredCell.row, hoveredCell.col) : [];
   const canPlace = hoveredCell && selectedPiece ? canPlacePiece(selectedPiece, hoveredCell.row, hoveredCell.col) : false;
 
+  const handleCellClick = (row, col, cellValue) => {
+    if (cellValue && cellValue.startsWith('piece-')) {
+      // Click on placed piece - remove it
+      onPieceClick(row, col);
+    } else if (!cellValue || cellValue !== 'obstacle') {
+      // Click on empty cell - try to place piece
+      onCellClick(row, col);
+    }
+  };
+
   const getCellStyle = (row, col, cellValue) => {
     const cellKey = `${row}-${col}`;
     const isPreview = previewCells.includes(cellKey);
@@ -39,11 +49,11 @@ const GameGrid = ({ gridState, onCellClick, selectedPiece, canPlacePiece }) => {
       // Extract piece ID and assign color
       const pieceId = cellValue.split('-')[1];
       const colors = [
-        'bg-red-400', 'bg-blue-400', 'bg-green-400', 'bg-yellow-400', 
-        'bg-purple-400', 'bg-pink-400', 'bg-indigo-400', 'bg-teal-400'
+        'bg-red-400 hover:bg-red-500', 'bg-blue-400 hover:bg-blue-500', 'bg-green-400 hover:bg-green-500', 'bg-yellow-400 hover:bg-yellow-500', 
+        'bg-purple-400 hover:bg-purple-500', 'bg-pink-400 hover:bg-pink-500', 'bg-indigo-400 hover:bg-indigo-500', 'bg-teal-400 hover:bg-teal-500'
       ];
       const colorIndex = parseInt(pieceId) % colors.length;
-      return `${baseStyle} ${colors[colorIndex]} border-gray-600`;
+      return `${baseStyle} ${colors[colorIndex]} border-gray-600 cursor-move ring-2 ring-offset-1 ring-transparent hover:ring-gray-400 active:ring-gray-600`;
     }
     
     if (isPreview) {
@@ -59,16 +69,21 @@ const GameGrid = ({ gridState, onCellClick, selectedPiece, canPlacePiece }) => {
 
   return (
     <div className="inline-block p-2 sm:p-4 bg-white rounded-xl shadow-lg border-2 border-gray-200 touch-manipulation">
+      <div className="mb-2 text-center">
+        <p className="text-xs sm:text-sm text-gray-600">
+          💡 Click pieces to move them back to spinner
+        </p>
+      </div>
       <div className="grid grid-cols-10 gap-0.5 sm:gap-1">
         {gridState.map((row, rowIndex) =>
           row.map((cell, colIndex) => (
             <div
               key={`${rowIndex}-${colIndex}`}
               className={getCellStyle(rowIndex, colIndex, cell)}
-              onClick={() => onCellClick(rowIndex, colIndex)}
-              onMouseEnter={() => setHoveredCell({ row: rowIndex, col: colIndex })}
+              onClick={() => handleCellClick(rowIndex, colIndex, cell)}
+              onMouseEnter={() => !cell || cell === 'obstacle' ? setHoveredCell({ row: rowIndex, col: colIndex }) : null}
               onMouseLeave={() => setHoveredCell(null)}
-              onTouchStart={() => setHoveredCell({ row: rowIndex, col: colIndex })}
+              onTouchStart={() => !cell || cell === 'obstacle' ? setHoveredCell({ row: rowIndex, col: colIndex }) : null}
               onTouchEnd={() => setHoveredCell(null)}
             >
               {cell === 'obstacle' && <span className="text-xs sm:text-sm">⬛</span>}

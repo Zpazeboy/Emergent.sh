@@ -23,8 +23,7 @@ function App() {
     return initialGrid;
   });
   const [availablePieces, setAvailablePieces] = useState(() => [...LEVELS[currentLevel].pieces]);
-  const [selectedPiece, setSelectedPiece] = useState(null);
-  const [rotation, setRotation] = useState(0);
+  const [selectedPiece, setSelectedPiece] = useState(0); // Always have a selected piece
   const [showControls, setShowControls] = useState(false);
   const { toast } = useToast();
 
@@ -39,33 +38,32 @@ function App() {
     return rotated;
   }, []);
 
-  // Get rotated version of current piece
-  const getRotatedPiece = useCallback((piece, rotations) => {
-    let rotatedPiece = piece;
-    for (let i = 0; i < rotations; i++) {
-      rotatedPiece = rotatePiece(rotatedPiece);
-    }
-    return rotatedPiece;
-  }, [rotatePiece]);
-
-  // Handle piece selection
-  const handlePieceSelect = (pieceIndex) => {
-    setSelectedPiece(pieceIndex);
-    setRotation(0);
+  // Rotate all pieces in spinner
+  const rotateAllPieces = () => {
+    setAvailablePieces(prevPieces => 
+      prevPieces.map(piece => ({
+        ...piece,
+        shape: rotatePiece(piece.shape)
+      }))
+    );
+    
+    toast({
+      title: "All pieces rotated! 🔄",
+      description: "All pieces in the spinner have been rotated 90°",
+      duration: 1500,
+    });
   };
 
-  // Handle piece rotation
-  const handleRotation = () => {
-    setRotation((prev) => (prev + 1) % 4);
+  // Handle piece selection from spinner
+  const handlePieceSelect = (pieceIndex) => {
+    setSelectedPiece(pieceIndex);
   };
 
   // Check if piece can be placed at position
   const canPlacePiece = useCallback((piece, row, col) => {
-    const rotatedPiece = getRotatedPiece(piece, rotation);
-    
-    for (let i = 0; i < rotatedPiece.length; i++) {
-      for (let j = 0; j < rotatedPiece[i].length; j++) {
-        if (rotatedPiece[i][j] === 1) {
+    for (let i = 0; i < piece.length; i++) {
+      for (let j = 0; j < piece[i].length; j++) {
+        if (piece[i][j] === 1) {
           const newRow = row + i;
           const newCol = col + j;
           
@@ -82,23 +80,21 @@ function App() {
       }
     }
     return true;
-  }, [gridState, rotation, getRotatedPiece]);
+  }, [gridState]);
 
-  // Handle piece placement
+  // Handle piece placement on grid
   const handlePiecePlacement = (row, col) => {
-    if (selectedPiece === null) return;
+    if (selectedPiece === null || !availablePieces[selectedPiece]) return;
 
     const piece = availablePieces[selectedPiece];
-    if (!piece) return;
 
     if (canPlacePiece(piece.shape, row, col)) {
-      const rotatedPiece = getRotatedPiece(piece.shape, rotation);
       const newGrid = gridState.map(row => [...row]);
       
       // Place the piece
-      for (let i = 0; i < rotatedPiece.length; i++) {
-        for (let j = 0; j < rotatedPiece[i].length; j++) {
-          if (rotatedPiece[i][j] === 1) {
+      for (let i = 0; i < piece.shape.length; i++) {
+        for (let j = 0; j < piece.shape[i].length; j++) {
+          if (piece.shape[i][j] === 1) {
             newGrid[row + i][col + j] = `piece-${piece.id}`;
           }
         }
@@ -107,13 +103,18 @@ function App() {
       setGridState(newGrid);
       
       // Remove used piece from available pieces
-      setAvailablePieces(prev => prev.filter((_, index) => index !== selectedPiece));
-      setSelectedPiece(null);
-      setRotation(0);
+      const newPieces = availablePieces.filter((_, index) => index !== selectedPiece);
+      setAvailablePieces(newPieces);
+      
+      // Update selected piece index
+      if (newPieces.length > 0) {
+        setSelectedPiece(Math.min(selectedPiece, newPieces.length - 1));
+      } else {
+        setSelectedPiece(null);
+      }
 
       // Check win condition
-      const remainingPieces = availablePieces.filter((_, index) => index !== selectedPiece);
-      if (remainingPieces.length === 0) {
+      if (newPieces.length === 0) {
         toast({
           title: "Level Complete! 🎉",
           description: `You've successfully completed level ${currentLevel}!`,
@@ -130,6 +131,45 @@ function App() {
     }
   };
 
+  // Handle clicking on placed pieces to move them back to spinner
+  const handlePieceRemoval = (row, col) => {
+    const cellValue = gridState[row][col];
+    if (!cellValue || !cellValue.startsWith('piece-')) return;
+
+    const pieceId = cellValue.split('-')[1];
+    const newGrid = gridState.map(row => [...row]);
+    const pieceShape = [];
+    
+    // Find all cells belonging to this piece and extract the shape
+    const pieceCells = [];
+    for (let r = 0; r < 10; r++) {
+      for (let c = 0; c < 10; c++) {
+        if (newGrid[r][c] === cellValue) {
+          pieceCells.push([r, c]);
+          newGrid[r][c] = null; // Remove from grid
+        }
+      }
+    }
+
+    // Reconstruct the piece shape (this is simplified - assumes pieces maintain their original shape)
+    // In a more complex implementation, you'd need to store the original shape data
+    // For now, we'll find a matching shape from the original level pieces
+    const originalPiece = LEVELS[currentLevel].pieces.find(p => p.id.toString() === pieceId);
+    if (originalPiece) {
+      // Add the piece back to available pieces
+      const newPieces = [...availablePieces, { ...originalPiece }];
+      setAvailablePieces(newPieces);
+      setGridState(newGrid);
+      setSelectedPiece(newPieces.length - 1); // Select the newly added piece
+      
+      toast({
+        title: "Piece moved to spinner! ↩️",
+        description: `Piece ${pieceId} has been moved back to the spinner`,
+        duration: 2000,
+      });
+    }
+  };
+
   // Reset current level
   const resetLevel = () => {
     const level = LEVELS[currentLevel];
@@ -141,8 +181,7 @@ function App() {
     
     setGridState(initialGrid);
     setAvailablePieces([...level.pieces]);
-    setSelectedPiece(null);
-    setRotation(0);
+    setSelectedPiece(0);
     setShowControls(false);
   };
 
@@ -160,8 +199,7 @@ function App() {
       
       setGridState(initialGrid);
       setAvailablePieces([...level.pieces]);
-      setSelectedPiece(null);
-      setRotation(0);
+      setSelectedPiece(0);
       setShowControls(false);
       
       toast({
@@ -214,16 +252,16 @@ function App() {
             Reset Level
           </Button>
           
-          {selectedPiece !== null && (
-            <Button 
-              onClick={handleRotation} 
-              size="sm"
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
-            >
-              <RotateCw size={14} />
-              Rotate Piece
-            </Button>
-          )}
+          {/* Always show rotate button */}
+          <Button 
+            onClick={rotateAllPieces} 
+            size="sm"
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
+            disabled={availablePieces.length === 0}
+          >
+            <RotateCw size={14} />
+            Rotate All Pieces
+          </Button>
           
           {availablePieces.length === 0 && LEVELS[currentLevel + 1] && (
             <Button 
@@ -242,7 +280,8 @@ function App() {
           <GameGrid
             gridState={gridState}
             onCellClick={handlePiecePlacement}
-            selectedPiece={selectedPiece !== null ? getRotatedPiece(availablePieces[selectedPiece]?.shape, rotation) : null}
+            onPieceClick={handlePieceRemoval}
+            selectedPiece={selectedPiece !== null && availablePieces[selectedPiece] ? availablePieces[selectedPiece].shape : null}
             canPlacePiece={canPlacePiece}
           />
         </div>
@@ -253,8 +292,6 @@ function App() {
             pieces={availablePieces}
             selectedPiece={selectedPiece}
             onPieceSelect={handlePieceSelect}
-            rotation={rotation}
-            getRotatedPiece={getRotatedPiece}
           />
         </div>
       </div>
