@@ -32,3 +32,46 @@
         transform: rotate(360deg);
     }
 }
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+    body {
+        overflow-x: hidden;
+    }
+    
+    .touch-manipulation {
+        touch-action: manipulation;
+    }
+    
+    /* Prevent zoom on double tap for game elements */
+    .game-grid-cell, .piece-selector-item {
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Smooth scrolling on mobile */
+    * {
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Better button touch targets */
+    button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* Responsive font scaling */
+@media (max-width: 480px) {
+    html {
+        font-size: 14px;
+    }
+}
+
+@media (min-width: 641px) {
+    html {
+        font-size: 16px;
+    }
+}

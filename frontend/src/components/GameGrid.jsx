@@ -28,8 +28,8 @@ const GameGrid = ({ gridState, onCellClick, selectedPiece, canPlacePiece }) => {
     const cellKey = `${row}-${col}`;
     const isPreview = previewCells.includes(cellKey);
     
-    // Base styles
-    let baseStyle = "w-8 h-8 border border-gray-300 cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-bold";
+    // Base styles - responsive sizing
+    let baseStyle = "w-6 h-6 sm:w-8 sm:h-8 border border-gray-300 cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-bold touch-manipulation";
     
     if (cellValue === 'obstacle') {
       return `${baseStyle} bg-gray-800 cursor-not-allowed`;
@@ -54,12 +54,12 @@ const GameGrid = ({ gridState, onCellClick, selectedPiece, canPlacePiece }) => {
       }
     }
     
-    return `${baseStyle} bg-white hover:bg-gray-50`;
+    return `${baseStyle} bg-white hover:bg-gray-50 active:bg-gray-100`;
   };
 
   return (
-    <div className="inline-block p-4 bg-white rounded-xl shadow-lg border-2 border-gray-200">
-      <div className="grid grid-cols-10 gap-1">
+    <div className="inline-block p-2 sm:p-4 bg-white rounded-xl shadow-lg border-2 border-gray-200 touch-manipulation">
+      <div className="grid grid-cols-10 gap-0.5 sm:gap-1">
         {gridState.map((row, rowIndex) =>
           row.map((cell, colIndex) => (
             <div
@@ -68,8 +68,10 @@ const GameGrid = ({ gridState, onCellClick, selectedPiece, canPlacePiece }) => {
               onClick={() => onCellClick(rowIndex, colIndex)}
               onMouseEnter={() => setHoveredCell({ row: rowIndex, col: colIndex })}
               onMouseLeave={() => setHoveredCell(null)}
+              onTouchStart={() => setHoveredCell({ row: rowIndex, col: colIndex })}
+              onTouchEnd={() => setHoveredCell(null)}
             >
-              {cell === 'obstacle' && '⬛'}
+              {cell === 'obstacle' && <span className="text-xs sm:text-sm">⬛</span>}
             </div>
           ))
         )}

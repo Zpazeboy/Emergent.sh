@@ -4,7 +4,7 @@ import GameGrid from './components/GameGrid';
 import PieceSelector from './components/PieceSelector';
 import { LEVELS } from './mockData';
 import { Button } from './components/ui/button';
-import { RotateCw, SkipForward, Home } from 'lucide-react';
+import { RotateCw, SkipForward, Home, Menu } from 'lucide-react';
 import { useToast } from './hooks/use-toast';
 import { Toaster } from './components/ui/toaster';
 
@@ -25,6 +25,7 @@ function App() {
   const [availablePieces, setAvailablePieces] = useState(() => [...LEVELS[currentLevel].pieces]);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [rotation, setRotation] = useState(0);
+  const [showControls, setShowControls] = useState(false);
   const { toast } = useToast();
 
   // Get current level data
@@ -142,6 +143,7 @@ function App() {
     setAvailablePieces([...level.pieces]);
     setSelectedPiece(null);
     setRotation(0);
+    setShowControls(false);
   };
 
   // Go to next level
@@ -160,6 +162,7 @@ function App() {
       setAvailablePieces([...level.pieces]);
       setSelectedPiece(null);
       setRotation(0);
+      setShowControls(false);
       
       toast({
         title: "New Level!",
@@ -170,31 +173,44 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-2 sm:p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Grid Puzzle Master</h1>
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold">
+        <div className="text-center mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-4xl font-bold text-gray-800 mb-2">Grid Puzzle Master</h1>
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mb-3 sm:mb-4 flex-wrap">
+            <div className="px-3 py-1 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm sm:text-base">
               Level {currentLevel}
             </div>
-            <div className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg">
+            <div className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-200 text-gray-700 rounded-lg text-sm sm:text-base">
               Pieces Left: {availablePieces.length}
             </div>
           </div>
-          <p className="text-gray-600">{currentLevelData.description}</p>
+          <p className="text-gray-600 text-sm sm:text-base px-2">{currentLevelData.description}</p>
+        </div>
+
+        {/* Mobile Controls Toggle */}
+        <div className="sm:hidden flex justify-center mb-4">
+          <Button
+            onClick={() => setShowControls(!showControls)}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Menu size={16} />
+            {showControls ? 'Hide Controls' : 'Show Controls'}
+          </Button>
         </div>
 
         {/* Controls */}
-        <div className="flex justify-center gap-4 mb-6">
+        <div className={`flex justify-center gap-2 sm:gap-4 mb-4 sm:mb-6 flex-wrap ${showControls ? 'block' : 'hidden sm:flex'}`}>
           <Button 
             onClick={resetLevel} 
             variant="outline" 
             size="sm"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 text-xs sm:text-sm"
           >
-            <Home size={16} />
+            <Home size={14} />
             Reset Level
           </Button>
           
@@ -202,9 +218,9 @@ function App() {
             <Button 
               onClick={handleRotation} 
               size="sm"
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
             >
-              <RotateCw size={16} />
+              <RotateCw size={14} />
               Rotate Piece
             </Button>
           )}
@@ -213,16 +229,16 @@ function App() {
             <Button 
               onClick={nextLevel} 
               size="sm"
-              className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
+              className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-xs sm:text-sm"
             >
-              <SkipForward size={16} />
+              <SkipForward size={14} />
               Next Level
             </Button>
           )}
         </div>
 
         {/* Game Grid */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-4 sm:mb-8 px-2">
           <GameGrid
             gridState={gridState}
             onCellClick={handlePiecePlacement}
@@ -232,13 +248,15 @@ function App() {
         </div>
 
         {/* Piece Selector */}
-        <PieceSelector
-          pieces={availablePieces}
-          selectedPiece={selectedPiece}
-          onPieceSelect={handlePieceSelect}
-          rotation={rotation}
-          getRotatedPiece={getRotatedPiece}
-        />
+        <div className="px-2">
+          <PieceSelector
+            pieces={availablePieces}
+            selectedPiece={selectedPiece}
+            onPieceSelect={handlePieceSelect}
+            rotation={rotation}
+            getRotatedPiece={getRotatedPiece}
+          />
+        </div>
       </div>
       
       <Toaster />
