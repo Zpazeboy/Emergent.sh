@@ -128,7 +128,7 @@ const PieceSelector = ({ pieces, selectedPiece, onPieceSelect }) => {
       </div>
       
       {/* Wheel Container */}
-      <div className="relative h-48 sm:h-64 flex items-center justify-center">
+      <div className="relative h-56 sm:h-72 flex items-center justify-center overflow-visible">
         {/* Navigation Arrows */}
         {pieces.length > 1 && (
           <>
@@ -153,7 +153,7 @@ const PieceSelector = ({ pieces, selectedPiece, onPieceSelect }) => {
         )}
 
         {/* Wheel Pieces */}
-        <div className="relative">
+        <div className="relative w-full h-full flex items-center justify-center">
           {wheelPieces.map(({ piece, index, position }) =>
             renderPiece(piece, position, index === selectedPiece)
           )}
