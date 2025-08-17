@@ -67,18 +67,6 @@ const PieceSelector = ({ pieces, selectedPiece, onPieceSelect }) => {
                 ))
               )}
             </div>
-            
-            {/* Piece Info - only show for center piece */}
-            {position === 0 && (
-              <div className="text-center">
-                <div className="text-xs sm:text-sm font-bold text-gray-800">
-                  Piece {piece.id}
-                </div>
-                <div className="text-xs text-blue-600 mt-1">
-                  Selected
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -123,7 +111,7 @@ const PieceSelector = ({ pieces, selectedPiece, onPieceSelect }) => {
           Selected piece is at the top • Click side pieces to rotate wheel
         </p>
         <div className="text-xs sm:text-sm text-blue-600 font-medium">
-          {pieces.length} pieces available • Piece {selectedPiece + 1} of {pieces.length} selected
+          {pieces.length} pieces available
         </div>
       </div>
       

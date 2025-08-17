@@ -4,7 +4,7 @@ import GameGrid from './components/GameGrid';
 import PieceSelector from './components/PieceSelector';
 import { LEVELS } from './mockData';
 import { Button } from './components/ui/button';
-import { RotateCw, SkipForward, Home, Menu } from 'lucide-react';
+import { RotateCw, SkipForward, Home } from 'lucide-react';
 import { useToast } from './hooks/use-toast';
 import { Toaster } from './components/ui/toaster';
 
@@ -24,7 +24,6 @@ function App() {
   });
   const [availablePieces, setAvailablePieces] = useState(() => [...LEVELS[currentLevel].pieces]);
   const [selectedPiece, setSelectedPiece] = useState(0); // Always have a selected piece
-  const [showControls, setShowControls] = useState(false);
   const { toast } = useToast();
 
   // Get current level data
@@ -182,7 +181,6 @@ function App() {
     setGridState(initialGrid);
     setAvailablePieces([...level.pieces]);
     setSelectedPiece(0);
-    setShowControls(false);
   };
 
   // Go to next level
@@ -200,7 +198,6 @@ function App() {
       setGridState(initialGrid);
       setAvailablePieces([...level.pieces]);
       setSelectedPiece(0);
-      setShowControls(false);
       
       toast({
         title: "New Level!",
@@ -227,21 +224,8 @@ function App() {
           <p className="text-gray-600 text-sm sm:text-base px-2">{currentLevelData.description}</p>
         </div>
 
-        {/* Mobile Controls Toggle */}
-        <div className="sm:hidden flex justify-center mb-4">
-          <Button
-            onClick={() => setShowControls(!showControls)}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <Menu size={16} />
-            {showControls ? 'Hide Controls' : 'Show Controls'}
-          </Button>
-        </div>
-
         {/* Controls */}
-        <div className={`flex justify-center gap-2 sm:gap-4 mb-4 sm:mb-6 flex-wrap ${showControls ? 'block' : 'hidden sm:flex'}`}>
+        <div className="flex justify-center gap-2 sm:gap-4 mb-4 sm:mb-6 flex-wrap">
           <Button 
             onClick={resetLevel} 
             variant="outline" 
